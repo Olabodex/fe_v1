@@ -12,7 +12,7 @@ export function GallerySidebar() {
         <button className="gallery-close" type="button" onClick={closeGallery}><X size={18} /></button>
         <div className="gallery-title">
           <h2>Minted Worlds</h2>
-          <span><i className="state-dot live" /> Refreshing every 10s</span>
+          <span><i className="state-dot live" /> Refreshes while open</span>
           <strong>Total {String(stats?.totalMinted ?? 0n)}</strong>
         </div>
         {galleryLoading && <p className="helper">Refreshing gallery...</p>}

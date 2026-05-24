@@ -1,17 +1,18 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { HashRouter, Route, Routes } from "react-router-dom";
 import { Globe2 } from "lucide-react";
 import { AppProvider, useApp } from "./AppContext";
-import { AdminPage } from "./components/AdminPage";
 import { Atmosphere } from "./components/Atmosphere";
 import { GallerySidebar } from "./components/GallerySidebar";
 import { Header } from "./components/Header";
-import { MarketplacePage } from "./components/MarketplacePage";
-import { MintPage } from "./components/MintPage";
 import { StatsBar } from "./components/StatsBar";
 import { StatusToast } from "./components/StatusToast";
 import "./styles.css";
+
+const AdminPage = lazy(() => import("./components/AdminPage").then((module) => ({ default: module.AdminPage })));
+const MarketplacePage = lazy(() => import("./components/MarketplacePage").then((module) => ({ default: module.MarketplacePage })));
+const MintPage = lazy(() => import("./components/MintPage").then((module) => ({ default: module.MintPage })));
 
 function AppShell() {
   const { activePhase, status, clearStatus, stats, openGallery } = useApp();
@@ -23,11 +24,13 @@ function AppShell() {
       <StatusToast status={status} onClose={clearStatus} />
       <StatsBar />
 
-      <Routes>
-        <Route path="/" element={<MintPage />} />
-        <Route path="/marketplace" element={<MarketplacePage />} />
-        <Route path="/adminofforgottenworld" element={<AdminPage />} />
-      </Routes>
+      <Suspense fallback={<div className="route-loading">Loading...</div>}>
+        <Routes>
+          <Route path="/" element={<MintPage />} />
+          <Route path="/marketplace" element={<MarketplacePage />} />
+          <Route path="/adminofforgottenworld" element={<AdminPage />} />
+        </Routes>
+      </Suspense>
 
       <button className="gallery-float" type="button" onClick={openGallery}>
         <Globe2 size={17} />

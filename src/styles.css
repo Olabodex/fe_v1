@@ -460,6 +460,18 @@ button {
   z-index: 2;
 }
 
+.route-loading {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: 22px;
+  position: relative;
+  text-align: center;
+  z-index: 2;
+}
+
 .stats-row > div {
   padding: 12px 16px;
 }

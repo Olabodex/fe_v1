@@ -118,7 +118,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const latestGalleryIdRef = useRef<bigint | undefined>(undefined);
   const lastInventoryScanRef = useRef("");
   const refreshInFlightRef = useRef(false);
+  const passScanInFlightRef = useRef(false);
+  const nftScanInFlightRef = useRef(false);
+  const galleryInFlightRef = useRef(false);
+  const contractCodeCheckedRef = useRef("");
+  const tokenMetadataCacheRef = useRef(new Map<string, { image?: string; name?: string }>());
   const manuallyDisconnectedRef = useRef(window.sessionStorage.getItem("walletDisconnected") === "1");
+  const [pageVisible, setPageVisible] = useState(() => document.visibilityState !== "hidden");
 
   const contracts = useMemo(() => {
     if (!provider) return null;
@@ -157,6 +163,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const canSubmitAdmin = Boolean(account && isSepolia);
   const ownerCheckFailed = Boolean(account && stats && !isOwner);
 
+  const readTokenMetadata = useCallback(
+    async (contract: Contract, id: bigint) => {
+      const key = id.toString();
+      const cached = tokenMetadataCacheRef.current.get(key);
+      if (cached) return cached;
+      const tokenUri = await contract.tokenURI(id);
+      const metadata = imageFromTokenUri(tokenUri);
+      tokenMetadataCacheRef.current.set(key, metadata);
+      return metadata;
+    },
+    [],
+  );
+
   const refresh = useCallback(async () => {
     if (!contracts || !provider || refreshInFlightRef.current) return;
     refreshInFlightRef.current = true;
@@ -170,16 +189,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const [nftCode, passCode, marketplaceCode] = await Promise.all([
-        provider.getCode(ADDRESSES.nft),
-        provider.getCode(ADDRESSES.pass),
-        provider.getCode(ADDRESSES.marketplace),
-      ]);
+      const codeCheckKey = `${nextChainId}:${ADDRESSES.nft}:${ADDRESSES.pass}:${ADDRESSES.marketplace}`;
+      if (contractCodeCheckedRef.current !== codeCheckKey) {
+        const [nftCode, passCode, marketplaceCode] = await Promise.all([
+          provider.getCode(ADDRESSES.nft),
+          provider.getCode(ADDRESSES.pass),
+          provider.getCode(ADDRESSES.marketplace),
+        ]);
 
-      if ([nftCode, passCode, marketplaceCode].some((code) => code === "0x")) {
-        setStats(null);
-        setStatus({ type: "error", message: "Contract addresses not found on Sepolia." });
-        return;
+        if ([nftCode, passCode, marketplaceCode].some((code) => code === "0x")) {
+          setStats(null);
+          setStatus({ type: "error", message: "Contract addresses not found on Sepolia." });
+          return;
+        }
+        contractCodeCheckedRef.current = codeCheckKey;
       }
 
       const { nftRead, passRead, marketplaceRead } = contracts;
@@ -289,7 +312,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [contracts, provider]);
 
   const scanPasses = useCallback(async () => {
-    if (!contracts || !stats || !isSepolia) return;
+    if (!contracts || !stats || !isSepolia || passScanInFlightRef.current) return;
+    passScanInFlightRef.current = true;
     setInventoryLoading(true);
     try {
       const ids = Array.from({ length: Number(stats.passTotalMinted) }, (_, index) => BigInt(index + 1));
@@ -320,12 +344,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setListedPasses(nextListings);
       if (!selectedPassId && nextOwned.length > 0) setSelectedPassId(String(nextOwned[0].id));
     } finally {
+      passScanInFlightRef.current = false;
       setInventoryLoading(false);
     }
   }, [account, contracts, isSepolia, selectedPassId, stats]);
 
   const scanOwnedNfts = useCallback(async () => {
-    if (!contracts || !stats || !account || !isSepolia) return;
+    if (!contracts || !stats || !account || !isSepolia || nftScanInFlightRef.current) return;
+    nftScanInFlightRef.current = true;
     setInventoryLoading(true);
     try {
       const ids = Array.from({ length: Number(stats.totalMinted) }, (_, index) => BigInt(index + 1));
@@ -333,13 +359,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         try {
           const owner = await contracts.nftRead.ownerOf(id);
           if (!isSameAddress(owner, account)) return null;
-          const [phase, rewardTierValue, pendingFees, tokenUri] = await Promise.all([
+          const [phase, rewardTierValue, pendingFees, metadata] = await Promise.all([
             contracts.nftRead.tokenPhase(id),
             contracts.nftRead.rewardTier(id),
             contracts.nftRead.pendingMarketplaceFees(id),
-            contracts.nftRead.tokenURI(id),
+            readTokenMetadata(contracts.nftRead, id),
           ]);
-          return { id, owner, phase: Number(phase), rewardTier: Number(rewardTierValue), pendingFees, ...imageFromTokenUri(tokenUri) };
+          return { id, owner, phase: Number(phase), rewardTier: Number(rewardTierValue), pendingFees, ...metadata };
         } catch {
           return null;
         }
@@ -348,12 +374,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setOwnedNfts(nextNfts);
       if (!selectedNftId && nextNfts.length > 0) setSelectedNftId(String(nextNfts[0].id));
     } finally {
+      nftScanInFlightRef.current = false;
       setInventoryLoading(false);
     }
-  }, [account, contracts, isSepolia, selectedNftId, stats]);
+  }, [account, contracts, isSepolia, readTokenMetadata, selectedNftId, stats]);
 
   const loadGallery = useCallback(async () => {
-    if (!contracts || totalMinted === undefined || !isSepolia) return;
+    if (!contracts || totalMinted === undefined || !isSepolia || galleryInFlightRef.current) return;
+    galleryInFlightRef.current = true;
     setGalleryLoading(true);
     try {
       const total = Number(totalMinted);
@@ -362,11 +390,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const previousLatest = latestGalleryIdRef.current;
       const rows: Array<NftItem | null> = await mapWithConcurrency(ids, 6, async (id) => {
         try {
-          const [owner, phase, rewardTierValue, tokenUri] = await Promise.all([
+          const [owner, phase, rewardTierValue, metadata] = await Promise.all([
             contracts.nftRead.ownerOf(id),
             contracts.nftRead.tokenPhase(id),
             contracts.nftRead.rewardTier(id),
-            contracts.nftRead.tokenURI(id),
+            readTokenMetadata(contracts.nftRead, id),
           ]);
           return {
             id,
@@ -374,7 +402,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             phase: Number(phase),
             rewardTier: Number(rewardTierValue),
             fresh: previousLatest ? id > previousLatest : false,
-            ...imageFromTokenUri(tokenUri),
+            ...metadata,
           };
         } catch {
           return null;
@@ -384,9 +412,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       latestGalleryIdRef.current = nextGallery.length > 0 ? nextGallery[nextGallery.length - 1].id : previousLatest;
       setGalleryNfts(nextGallery);
     } finally {
+      galleryInFlightRef.current = false;
       setGalleryLoading(false);
     }
-  }, [contracts, isSepolia, totalMinted]);
+  }, [contracts, isSepolia, readTokenMetadata, totalMinted]);
 
   const runTx = useCallback(
     async (label: string, action: () => Promise<SignedTx>) => {
@@ -496,11 +525,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    const onVisibilityChange = () => setPageVisible(document.visibilityState !== "hidden");
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, []);
+
+  useEffect(() => {
     refresh().catch((error) => setStatus({ type: "error", message: compactStatusMessage(error) }));
   }, [refresh]);
 
   useEffect(() => {
-    if (!stats || !account || !isSepolia) return;
+    if (!stats || !account || !isSepolia || !pageVisible) return;
     const scanKey = `${account.toLowerCase()}-${stats.passTotalMinted.toString()}-${stats.totalMinted.toString()}`;
     if (lastInventoryScanRef.current === scanKey) return;
     lastInventoryScanRef.current = scanKey;
@@ -509,24 +544,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
       scanOwnedNfts().catch((error) => setStatus({ type: "error", message: compactStatusMessage(error) }));
     }, 250);
     return () => window.clearTimeout(timer);
-  }, [account, isSepolia, scanOwnedNfts, scanPasses, stats]);
+  }, [account, isSepolia, pageVisible, scanOwnedNfts, scanPasses, stats]);
 
   useEffect(() => {
+    if (!pageVisible) return;
     const timer = window.setInterval(() => {
       refresh().catch((error) => setStatus({ type: "error", message: compactStatusMessage(error) }));
-    }, 15000);
+    }, 30000 + Math.floor(Math.random() * 5000));
     return () => window.clearInterval(timer);
-  }, [refresh]);
+  }, [pageVisible, refresh]);
 
   useEffect(() => {
+    if (!galleryOpen || !pageVisible) return;
     loadGallery().catch((error) => setStatus({ type: "error", message: compactStatusMessage(error) }));
     const timer = window.setInterval(() => {
       refresh()
         .then(loadGallery)
         .catch((error) => setStatus({ type: "error", message: compactStatusMessage(error) }));
-    }, 10000);
+    }, 15000 + Math.floor(Math.random() * 5000));
     return () => window.clearInterval(timer);
-  }, [loadGallery, refresh]);
+  }, [galleryOpen, loadGallery, pageVisible, refresh]);
 
   const filteredListings = listedPasses.filter((listing) => {
     if (listing.passType === 0) return false;
