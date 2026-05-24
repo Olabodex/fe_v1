@@ -1,0 +1,127 @@
+export const SEPOLIA_CHAIN_ID = 11155111;
+
+export const ADDRESSES = {
+  renderer: import.meta.env.VITE_RENDERER_ADDRESS ?? "0xE4566bD959167a99850Eb87A07f937d9c2B340DC",
+  pass: import.meta.env.VITE_PASS_ADDRESS ?? "0xB75C960B6D1964976CF2631877212099F6AC60eF",
+  nft: import.meta.env.VITE_NFT_ADDRESS ?? "0x40fa67dAA24396BCDE690e441EC5551fF018fA97",
+  marketplace: import.meta.env.VITE_MARKETPLACE_ADDRESS ?? "0x6C66ce77653671D00b709Edd3D0e4dc4b45D8F92",
+} as const;
+
+export const PASS_ABI = [
+  "function owner() view returns (address)",
+  "function name() view returns (string)",
+  "function symbol() view returns (string)",
+  "function totalMinted() view returns (uint256)",
+  "function initialPassMinted() view returns (uint256)",
+  "function phaseOneRewardMinted() view returns (uint256)",
+  "function phaseTwoRewardMinted() view returns (uint256)",
+  "function INITIAL_PASS_SUPPLY() view returns (uint256)",
+  "function PHASE_ONE_REWARD_SUPPLY() view returns (uint256)",
+  "function PHASE_TWO_REWARD_SUPPLY() view returns (uint256)",
+  "function claimActive() view returns (bool)",
+  "function hasClaimedInitialPass(address account) view returns (bool)",
+  "function ownerOf(uint256 tokenId) view returns (address)",
+  "function passTypeOf(uint256 tokenId) view returns (uint8)",
+  "function lockedUntilPhase(uint256 tokenId) view returns (uint8)",
+  "function isSellable(uint256 passId) view returns (bool)",
+  "function canUseForPhase(uint256 passId, uint8 phaseId) view returns (bool)",
+  "function claimInitialPass()",
+  "function setClaimActive(bool active)",
+  "function setMintContract(address mintContract)",
+  "function setMarketplace(address marketplace)",
+] as const;
+
+export const NFT_ABI = [
+  "function owner() view returns (address)",
+  "function name() view returns (string)",
+  "function symbol() view returns (string)",
+  "function totalMinted() view returns (uint256)",
+  "function MAX_SUPPLY() view returns (uint256)",
+  "function activePhase() view returns (uint8)",
+  "function paused() view returns (bool)",
+  "function phaseOneMinted() view returns (uint256)",
+  "function phaseTwoMinted() view returns (uint256)",
+  "function phaseThreeMinted() view returns (uint256)",
+  "function phaseFourMinted() view returns (uint256)",
+  "function priceForPhase(uint8 phase) view returns (uint256)",
+  "function mintedPerPhase(uint8 phase, address account) view returns (uint256)",
+  "function tokenPhase(uint256 tokenId) view returns (uint8)",
+  "function rewardTier(uint256 tokenId) view returns (uint8)",
+  "function burnedForReward(uint256 tokenId) view returns (bool)",
+  "function ownerOf(uint256 tokenId) view returns (address)",
+  "function transferFrom(address from, address to, uint256 tokenId)",
+  "function tokenURI(uint256 tokenId) view returns (string)",
+  "function rewardPoolFunded() view returns (uint256)",
+  "function mintRevenue() view returns (uint256)",
+  "function burnFeesCollected() view returns (uint256)",
+  "function totalFeeShareReceived() view returns (uint256)",
+  "function pendingMarketplaceFees(uint256 tokenId) view returns (uint256)",
+  "function phaseOneRewardsFinalized() view returns (bool)",
+  "function phaseOneRewardSelected() view returns (uint256)",
+  "function phaseOneMinterCount() view returns (uint256)",
+  "function rewardCountsLocked() view returns (bool)",
+  "function rareRemaining() view returns (uint256)",
+  "function superRareRemaining() view returns (uint256)",
+  "function mintPhaseOne(uint256 quantity, uint256 passId) payable",
+  "function mintPhaseTwo(uint256 quantity) payable",
+  "function mintPhaseThree(uint256 quantity) payable",
+  "function mintPhaseFour(uint256 quantity, uint256[] passIds) payable",
+  "function burnForReward(uint256 tokenId)",
+  "function claimMarketplaceFees(uint256[] tokenIds)",
+  "function setActivePhase(uint8 phase)",
+  "function setPhasePrice(uint8 phase, uint256 price)",
+  "function setRewardTier(uint256 tokenId, uint8 tier)",
+  "function setRewardTiers(uint256[] tokenIds, uint8[] tiers)",
+  "function setRewardAmounts(uint256 commonAmount, uint256 rareAmount, uint256 superRareAmount)",
+  "function setFinalRewardAmounts(uint256 finalRareAmount, uint256 finalSuperRareAmount)",
+  "function fundRewardPool() payable",
+  "function withdrawMintRevenue(address to)",
+  "function withdrawBurnFees(address to)",
+  "function pause()",
+  "function unpause()",
+  "function finalizePhaseOneRewards()",
+  "function selectPhaseOneRewardWinners(uint256 count)",
+  "function lockRewardCounts()",
+] as const;
+
+export const MARKETPLACE_ABI = [
+  "function owner() view returns (address)",
+  "function paused() view returns (bool)",
+  "function maxListingPrice() view returns (uint256)",
+  "function transferFee() view returns (uint256)",
+  "function collectedFees() view returns (uint256)",
+  "function getListing(uint256 passId) view returns (address seller, uint256 price, bool active)",
+  "function listPass(uint256 passId, uint256 price)",
+  "function cancelListing(uint256 passId)",
+  "function buyPass(uint256 passId) payable",
+  "function transferPass(address to, uint256 passId) payable",
+  "function setMaxListingPrice(uint256 price)",
+  "function setTransferFee(uint256 fee)",
+  "function setFeeShareReceiver(address receiver)",
+  "function withdrawFees(address to)",
+  "function pause()",
+  "function unpause()",
+] as const;
+
+export const PHASE_SUPPLIES = [0, 1000, 300, 500, 200] as const;
+
+export const PHASE_NAMES: Record<number, string> = {
+  0: "Paused",
+  1: "Phase 1",
+  2: "Phase 2",
+  3: "Phase 3",
+  4: "Phase 4",
+};
+
+export const PASS_TYPE_NAMES: Record<number, string> = {
+  0: "Initial Phase One",
+  1: "Phase One Reward",
+  2: "Phase Two Reward",
+};
+
+export const REWARD_TIER_NAMES: Record<number, string> = {
+  0: "None",
+  1: "Common",
+  2: "Rare",
+  3: "Super Rare",
+};
