@@ -65,6 +65,64 @@ export function AdminPage() {
         </div>
       )}
 
+      <Section title="P1 Reward Batching" icon={<ShieldCheck size={19} />}>
+        <div className="admin-metrics">
+          <div>
+            <span>Active phase</span>
+            <strong>{stats ? stats.activePhase : "..."}</strong>
+          </div>
+          <div>
+            <span>Finalized</span>
+            <strong>{stats ? (stats.phaseOneRewardsFinalized ? "Yes" : "No") : "..."}</strong>
+          </div>
+          <div>
+            <span>Selected</span>
+            <strong>{stats ? `${stats.phaseOneRewardSelected}/${stats.phaseOneMinterCount}` : "..."}</strong>
+          </div>
+          <div>
+            <span>Reward passes</span>
+            <strong>{stats ? `${stats.phaseOneRewardMinted}/${stats.phaseOneRewardSupply}` : "..."}</strong>
+          </div>
+          <div>
+            <span>Counts locked</span>
+            <strong>{stats ? (stats.rewardCountsLocked ? "Yes" : "No") : "..."}</strong>
+          </div>
+        </div>
+
+        <div className="reward-workflow">
+          <div className="reward-step">
+            <span>1</span>
+            <strong>Finalize phase one</strong>
+            <button type="button" disabled={!canSubmitAdmin || stats?.activePhase === 1 || stats?.phaseOneRewardsFinalized} onClick={() => setConfirmAction("finalize")}>
+              Finalize
+            </button>
+          </div>
+          <div className="reward-step reward-batch-step">
+            <span>2</span>
+            <strong>Select winners in batches</strong>
+            <StepperField label="Batch size" value={winnerCount} onChange={setWinnerCount} min={1} />
+            <button type="button" disabled={!canSubmitAdmin || !stats?.phaseOneRewardsFinalized || stats?.rewardCountsLocked} onClick={() => selectWinners(winnerCount)}>
+              Select Winners
+            </button>
+          </div>
+          <div className="reward-step">
+            <span>3</span>
+            <strong>Lock reward counts</strong>
+            <button type="button" disabled={!canSubmitAdmin || !stats?.phaseOneRewardsFinalized || stats?.rewardCountsLocked} onClick={() => setConfirmAction("lock")}>
+              Lock Counts
+            </button>
+          </div>
+        </div>
+
+        {confirmAction && (
+          <div className="confirm-row">
+            <span>Confirm: this cannot be undone.</span>
+            <button type="button" disabled={!canSubmitAdmin} onClick={confirmAction === "finalize" ? finalizeRewards : lockRewardCounts}>Confirm</button>
+            <button type="button" onClick={() => setConfirmAction(null)}>Cancel</button>
+          </div>
+        )}
+      </Section>
+
       <Section title="Phase / Price" icon={<Sun size={19} />}>
         <div className="admin-grid">
           <StepperField label="Active phase" value={adminPhase} onChange={setAdminPhase} min={0} max={4} />
@@ -103,26 +161,6 @@ export function AdminPage() {
         </div>
       </Section>
 
-      <Section title="P1 Rewards / Withdraw" icon={<ShieldCheck size={19} />}>
-        <div className="step-flow">
-          <button type="button" disabled={!canSubmitAdmin} onClick={() => setConfirmAction("finalize")}>1. Finalize</button>
-          <button type="button" disabled={!canSubmitAdmin} onClick={() => selectWinners(winnerCount)}>2. Select Winners</button>
-          <button type="button" disabled={!canSubmitAdmin} onClick={() => setConfirmAction("lock")}>3. Lock Counts</button>
-        </div>
-        {confirmAction && (
-          <div className="confirm-row">
-            <span>Confirm: this cannot be undone.</span>
-            <button type="button" disabled={!canSubmitAdmin} onClick={confirmAction === "finalize" ? finalizeRewards : lockRewardCounts}>Confirm</button>
-            <button type="button" onClick={() => setConfirmAction(null)}>Cancel</button>
-          </div>
-        )}
-        <div className="admin-grid">
-          <StepperField label="Winner count" value={winnerCount} onChange={setWinnerCount} min={0} />
-          <Field label="Withdraw to" value={withdrawTo} onChange={setWithdrawTo} placeholder={account || "0x..."} />
-        </div>
-        <ActionButton full tone="danger" disabled={!canSubmitAdmin} onClick={() => withdrawRevenue(withdrawTo)}>Withdraw Revenue</ActionButton>
-      </Section>
-
       <Section title="Marketplace Admin" icon={<ExternalLink size={19} />}>
         <div className="admin-grid">
           <Field label={`Max list ETH (${stats ? eth(stats.maxListingPrice) : "..."})`} value={marketMaxPrice} onChange={setMarketMaxPrice} />
@@ -131,6 +169,27 @@ export function AdminPage() {
         <div className="button-grid">
           <ActionButton full disabled={!canSubmitAdmin} onClick={() => setMaxListPrice(marketMaxPrice)}>Set Max Price</ActionButton>
           <ActionButton full tone="soft" disabled={!canSubmitAdmin} onClick={() => setTransferFee(marketTransferFee)}>Set Transfer Fee</ActionButton>
+        </div>
+      </Section>
+
+      <Section title="Withdraw Revenue" icon={<ExternalLink size={19} />} className="withdraw-section">
+        <div className="admin-metrics">
+          <div>
+            <span>Mint revenue</span>
+            <strong>{stats ? eth(stats.mintRevenue) : "..."}</strong>
+          </div>
+          <div>
+            <span>Burn fees</span>
+            <strong>{stats ? eth(stats.burnFeesCollected) : "..."}</strong>
+          </div>
+          <div>
+            <span>Marketplace fees</span>
+            <strong>{stats ? eth(stats.collectedFees) : "..."}</strong>
+          </div>
+        </div>
+        <div className="admin-grid withdraw-grid">
+          <Field label="Withdraw to" value={withdrawTo} onChange={setWithdrawTo} placeholder={account || "0x..."} />
+          <ActionButton full tone="danger" disabled={!canSubmitAdmin} onClick={() => withdrawRevenue(withdrawTo)}>Withdraw Mint Revenue</ActionButton>
         </div>
       </Section>
 

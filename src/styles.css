@@ -1072,6 +1072,88 @@ a:hover {
   margin-top: 12px;
 }
 
+.admin-metrics {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  margin-bottom: 14px;
+}
+
+.admin-metrics > div {
+  background: var(--card-strong);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 2px;
+  min-height: 76px;
+  padding: 12px;
+}
+
+.admin-metrics span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.admin-metrics strong {
+  font-size: 19px;
+  line-height: 1.1;
+}
+
+.reward-workflow {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 0.9fr 1.2fr 0.9fr;
+  margin-bottom: 12px;
+}
+
+.reward-step {
+  background: color-mix(in srgb, var(--card-strong) 88%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.reward-step > span {
+  align-items: center;
+  background: var(--accent-soft);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  display: inline-flex;
+  font-weight: 700;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+}
+
+.reward-step strong {
+  font-size: 17px;
+  line-height: 1.1;
+}
+
+.reward-step button,
+.confirm-row button {
+  background: var(--card-strong);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  min-height: 42px;
+}
+
+.reward-batch-step .field {
+  margin-bottom: 0;
+}
+
+.withdraw-section {
+  margin-top: 28px;
+}
+
+.withdraw-grid {
+  align-items: end;
+}
+
 .admin-notice {
   align-items: center;
   background: var(--card-strong);
@@ -1096,8 +1178,7 @@ a:hover {
   margin-bottom: 12px;
 }
 
-.step-flow button,
-.confirm-row button {
+.step-flow button {
   background: var(--card-strong);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -1316,7 +1397,8 @@ a:hover {
   .phase-card-grid,
   .admin-grid,
   .button-grid,
-  .step-flow {
+  .step-flow,
+  .reward-workflow {
     grid-template-columns: 1fr;
   }
 
