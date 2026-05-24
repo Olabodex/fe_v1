@@ -11,7 +11,7 @@ import type { ChainStats, Listing, NftItem, OwnedPass, Status } from "./types";
 import { compactStatusMessage, imageFromTokenUri, isSameAddress, mapWithConcurrency, shortAddress } from "./utils";
 
 type MarketMode = "list" | "passTransfer" | "nftTransfer";
-type ListingFilter = "all" | "0" | "1" | "2";
+type ListingFilter = "all" | "1" | "2";
 
 type SignedTx = { wait: () => Promise<unknown>; hash?: string };
 
@@ -303,9 +303,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
             contracts.marketplaceRead.getListing(id),
             contracts.passRead.ownerOf(id),
           ]);
-          const listingData = { passId: id, seller: listing[0], price: listing[1], active: listing[2] };
+          const passTypeValue = Number(passType);
+          const listingData = { passId: id, passType: passTypeValue, seller: listing[0], price: listing[1], active: listing[2] };
           return {
-            owned: account && isSameAddress(owner, account) ? { id, passType: Number(passType), canUsePhaseOne, canUsePhaseFour, sellable, listing: listingData } : null,
+            owned: account && isSameAddress(owner, account) ? { id, passType: passTypeValue, canUsePhaseOne, canUsePhaseFour, sellable, listing: listingData } : null,
             listing: listingData.active ? listingData : null,
           };
         } catch {
@@ -528,9 +529,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [loadGallery, refresh]);
 
   const filteredListings = listedPasses.filter((listing) => {
+    if (listing.passType === 0) return false;
     if (listingFilter === "all") return true;
-    const found = ownedPasses.find((item) => item.id === listing.passId);
-    return found ? String(found.passType) === listingFilter : true;
+    return String(listing.passType) === listingFilter;
   });
 
   const value: AppContextValue = {

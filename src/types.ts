@@ -38,6 +38,7 @@ export type ChainStats = {
 
 export type Listing = {
   passId: bigint;
+  passType: number;
   seller: string;
   price: bigint;
   active: boolean;
