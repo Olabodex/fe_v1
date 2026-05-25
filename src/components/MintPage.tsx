@@ -1,5 +1,6 @@
 import { Check, Lock, Minus, Moon, Plus, Sparkles, Sun } from "lucide-react";
 import { useApp } from "../AppContext";
+import { SHOWCASE_MODE } from "../config";
 import { PASS_TYPE_NAMES, PHASE_SUPPLIES } from "../contracts";
 import type { OwnedPass } from "../types";
 import { eth, phaseLabels, phaseSubtitles } from "../utils";
@@ -33,16 +34,22 @@ export function MintPage() {
 
   return (
     <div className="page-shell">
+      {SHOWCASE_MODE && (
+        <div className="preview-banner">
+          <strong>Preview mode</strong>
+          <span>Wallet access is closed for now. You can view the mint structure, phases, and live collection state before the public flow opens.</span>
+        </div>
+      )}
       <Section title="Dawn - Pass Claim" icon={claimLocked ? <Lock size={20} /> : <Sun size={20} />} locked={claimLocked} note="Claim window has closed." className="claim-card">
         <div className="claim-layout">
           <div>
             <p>Initial passes claimed</p>
             <strong>{stats ? `${stats.initialPassMinted}/${stats.initialPassSupply}` : "..."}</strong>
-            <span>{account ? "Wallet eligibility is checked by the contract when you claim." : "Connect wallet to check eligibility."}</span>
+            <span>{SHOWCASE_MODE ? "Claim access will open when the mint flow is ready." : account ? "Wallet eligibility is checked when you claim." : "Connect wallet to check eligibility."}</span>
           </div>
-          <ActionButton disabled={!account || !isSepolia || !stats?.claimActive} onClick={claimInitialPass}>
+          <ActionButton disabled={SHOWCASE_MODE || !account || !isSepolia || !stats?.claimActive} onClick={claimInitialPass}>
             <Check size={17} />
-            Claim Initial Pass
+            {SHOWCASE_MODE ? "Preview Only" : "Claim Initial Pass"}
           </ActionButton>
         </div>
       </Section>
@@ -50,7 +57,7 @@ export function MintPage() {
       <div className="sun-rule"><Sun size={18} /></div>
 
       <Section title="Mint Worlds" icon={<Sparkles size={20} />}>
-        <PassStrip passes={ownedPasses} loading={inventoryLoading} />
+        <PassStrip passes={ownedPasses} loading={inventoryLoading} preview={SHOWCASE_MODE} />
         <div className="phase-card-grid">
           {[1, 2, 3, 4].map((phase) => (
             <PhaseCard
@@ -76,8 +83,8 @@ export function MintPage() {
             {activePhase === 4 && phaseFourPasses.length > 0 && `Using ${phaseFourPasses.length} reward pass${phaseFourPasses.length > 1 ? "es" : ""}.`}
             {activePhase === 0 && "Minting is currently locked."}
           </p>
-          <ActionButton full disabled={!canMint} onClick={mintWorlds}>
-            Mint {quantity} World{quantity > 1 ? "s" : ""} for {eth(activePrice * BigInt(quantity))}
+          <ActionButton full disabled={SHOWCASE_MODE || !canMint} onClick={mintWorlds}>
+            {SHOWCASE_MODE ? "Mint Preview Closed" : `Mint ${quantity} World${quantity > 1 ? "s" : ""} for ${eth(activePrice * BigInt(quantity))}`}
           </ActionButton>
         </div>
       </Section>
@@ -85,11 +92,11 @@ export function MintPage() {
   );
 }
 
-function PassStrip({ passes, loading }: { passes: OwnedPass[]; loading: boolean }) {
+function PassStrip({ passes, loading, preview }: { passes: OwnedPass[]; loading: boolean; preview?: boolean }) {
   return (
     <div className="pass-strip">
-      <span>{loading ? "Detecting wallet passes..." : "Detected passes"}</span>
-      {passes.length === 0 && <em>No passes found</em>}
+      <span>{preview ? "Pass access preview" : loading ? "Detecting wallet passes..." : "Detected passes"}</span>
+      {passes.length === 0 && <em>{preview ? "Wallet detection is closed" : "No passes found"}</em>}
       {passes.map((pass) => (
         <button type="button" key={String(pass.id)}>
           {PASS_TYPE_NAMES[pass.passType].replace("Phase ", "P")} #{String(pass.id)}

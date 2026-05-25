@@ -7,6 +7,7 @@ import {
   PASS_ABI,
   SEPOLIA_CHAIN_ID,
 } from "./contracts";
+import { SHOWCASE_MODE } from "./config";
 import type { ChainStats, Listing, NftItem, OwnedPass, Status } from "./types";
 import { compactStatusMessage, imageFromTokenUri, isSameAddress, mapWithConcurrency, shortAddress } from "./utils";
 
@@ -86,6 +87,40 @@ type AppContextValue = {
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
+const DEMO_ADDRESS = "0x0000000000000000000000000000000000000000";
+const DEMO_STATS: ChainStats = {
+  nftOwner: DEMO_ADDRESS,
+  passOwner: DEMO_ADDRESS,
+  marketplaceOwner: DEMO_ADDRESS,
+  activePhase: 1,
+  paused: false,
+  marketplacePaused: false,
+  totalMinted: 0n,
+  maxSupply: 2000n,
+  phaseMinted: [0n, 0n, 0n, 0n],
+  phasePrices: [1000000000000000n, 1000000000000000n, 1000000000000000n, 1000000000000000n],
+  passTotalMinted: 0n,
+  initialPassMinted: 0n,
+  initialPassSupply: 1500n,
+  phaseOneRewardMinted: 0n,
+  phaseOneRewardSupply: 400n,
+  phaseTwoRewardMinted: 0n,
+  phaseTwoRewardSupply: 600n,
+  claimActive: true,
+  rewardPoolFunded: 0n,
+  mintRevenue: 0n,
+  burnFeesCollected: 0n,
+  totalFeeShareReceived: 0n,
+  phaseOneRewardsFinalized: false,
+  phaseOneRewardSelected: 0n,
+  phaseOneMinterCount: 0n,
+  rewardCountsLocked: false,
+  rareRemaining: 20n,
+  superRareRemaining: 10n,
+  maxListingPrice: 0n,
+  transferFee: 0n,
+  collectedFees: 0n,
+};
 
 export function useApp() {
   const value = useContext(AppContext);
@@ -136,6 +171,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [provider]);
 
   const withSigner = useCallback(async () => {
+    if (SHOWCASE_MODE) throw new Error("Wallet actions are closed during preview.");
     if (!provider) throw new Error("Connect wallet first");
     const signer = await provider.getSigner();
     return {
@@ -198,8 +234,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ]);
 
         if ([nftCode, passCode, marketplaceCode].some((code) => code === "0x")) {
-          setStats(null);
-          setStatus({ type: "error", message: "Contract addresses not found on Sepolia." });
+          setStats(DEMO_STATS);
+          setStatus({ type: "idle", message: "" });
           return;
         }
         contractCodeCheckedRef.current = codeCheckKey;
@@ -436,6 +472,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const connect = useCallback(async () => {
+    if (SHOWCASE_MODE) {
+      setStatus({ type: "idle", message: "" });
+      return;
+    }
     if (!window.ethereum) {
       setStatus({ type: "error", message: "MetaMask or another injected wallet is required." });
       return;
@@ -490,7 +530,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setProvider(injected);
     Promise.all([injected.listAccounts(), injected.getNetwork()])
       .then(([accounts, network]) => {
-        if (accounts[0] && !manuallyDisconnectedRef.current) setAccount(accounts[0].address);
+        if (!SHOWCASE_MODE && accounts[0] && !manuallyDisconnectedRef.current) setAccount(accounts[0].address);
         setChainId(Number(network.chainId));
       })
       .catch(() => undefined);
@@ -500,6 +540,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const ethereum = window.ethereum;
     if (!ethereum) return;
     const onAccountsChanged = (accounts: unknown) => {
+      if (SHOWCASE_MODE) return;
       const nextAccount = Array.isArray(accounts) ? String(accounts[0] ?? "") : "";
       if (nextAccount) {
         manuallyDisconnectedRef.current = false;

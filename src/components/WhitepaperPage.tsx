@@ -34,8 +34,8 @@ const phases = [
 
 const passRows = [
   ["Initial passes", "1,500", "Early Phase 1 access"],
-  ["Phase 1 reward passes", "400", "Earned by selected Phase 1 minters"],
-  ["Phase 2 reward passes", "600", "Earned through Phase 2 participation"],
+  ["Phase 1 reward passes", "400", "Used to mint in Phase 4"],
+  ["Phase 2 reward passes", "600", "Used to mint in Phase 4"],
 ];
 
 const rarityRows = [
@@ -162,11 +162,11 @@ export function WhitepaperPage() {
           <div className="whitepaper-copy">
             <p>
               The pass system keeps access organized without making the whole collection feel closed. Initial passes are for the earliest mint window.
-              Reward passes are for later participation and the final phase.
+              Reward passes are for Phase 4, the final mint window.
             </p>
             <p>
               The full pass supply is 2,500: 1,500 initial passes, 400 Phase 1 reward passes, and 600 Phase 2 reward passes.
-              That gives early supporters a clean first path while still leaving room for newer collectors to enter through reward-pass activity.
+              That gives early supporters a clean first path while still leaving room for newer collectors to enter through reward-pass activity and the last phase.
             </p>
           </div>
           <div className="whitepaper-table compact">
@@ -229,6 +229,9 @@ export function WhitepaperPage() {
               The NFT is destroyed, so the active supply gets smaller.
             </p>
             <p>
+              Claiming and fee sharing open after mintout. Until then, the focus stays on minting worlds and letting the collection settle.
+            </p>
+            <p>
               This is where holding starts to matter. The longer you hold an eligible reward world, the more valuable the choice can become, because fewer
               active worlds means future fee sharing and reward pressure are spread across a tighter group. Burning pays out, but holding keeps you in the active economy.
             </p>
@@ -255,7 +258,10 @@ export function WhitepaperPage() {
         <div className="whitepaper-copy">
           <p>
             The marketplace gives reward-pass holders a native place to list or move passes. Sales use a 15% fee, with 85% going to the seller.
-            When fees are sent back into the world economy, active NFT holders can share in them.
+            Pass listings are capped at a maximum of $2, keeping access from turning into a runaway price game.
+          </p>
+          <p>
+            After mintout, marketplace fees can flow back into the world economy, and active NFT holders can share in them.
           </p>
           <p>
             A burned NFT no longer counts as active. That matters because future fee sharing is divided among the active worlds that remain.

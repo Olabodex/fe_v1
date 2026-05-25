@@ -1,5 +1,6 @@
 import { Moon } from "lucide-react";
 import { useApp } from "../AppContext";
+import { SHOWCASE_MODE } from "../config";
 import { PASS_TYPE_NAMES, PHASE_NAMES, REWARD_TIER_NAMES } from "../contracts";
 import { eth, shortAddress } from "../utils";
 import { ActionButton, Field, SelectField } from "./ui";
@@ -9,6 +10,14 @@ export function MarketplacePage() {
 
   return (
     <div className="market-shell">
+      {SHOWCASE_MODE && (
+        <section className="market-column listings-column preview-banner market-preview">
+          <strong>Marketplace preview</strong>
+          <span>Listings can be viewed, but wallet actions are closed until the main flow is ready.</span>
+        </section>
+      )}
+
+      {!SHOWCASE_MODE && (
       <section className="market-column action-column">
         <div className="segmented">
           <button type="button" className={app.marketMode === "list" ? "active" : ""} onClick={() => app.setMarketMode("list")}>List Pass</button>
@@ -63,7 +72,9 @@ export function MarketplacePage() {
           </>
         )}
       </section>
+      )}
 
+      {!SHOWCASE_MODE && (
       <section className="market-column inspect-column">
         <div className="column-heading"><h2>Inspect</h2></div>
         {!app.inspectKind && <div className="empty-state"><span>Select a pass or NFT to inspect</span></div>}
@@ -107,6 +118,7 @@ export function MarketplacePage() {
           </div>
         )}
       </section>
+      )}
 
       <section className="market-column listings-column">
         <div className="column-heading"><h2>Listings</h2></div>
@@ -130,7 +142,7 @@ export function MarketplacePage() {
               <strong>Pass #{String(listing.passId)}</strong>
               <b>{eth(listing.price)}</b>
               <small>Seller {shortAddress(listing.seller)}</small>
-              <ActionButton tone="soft" disabled={!app.account || !app.isSepolia} onClick={() => app.buyPass(listing)}>Buy</ActionButton>
+              {!SHOWCASE_MODE && <ActionButton tone="soft" disabled={!app.account || !app.isSepolia} onClick={() => app.buyPass(listing)}>Buy</ActionButton>}
             </article>
           ))}
         </div>

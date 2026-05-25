@@ -460,6 +460,33 @@ button {
   z-index: 2;
 }
 
+.preview-banner {
+  background: color-mix(in srgb, var(--card-strong) 86%, var(--accent) 8%);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 18px 46px var(--shadow);
+  display: grid;
+  gap: 4px;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  position: relative;
+  z-index: 2;
+}
+
+.preview-banner strong {
+  font-size: 18px;
+  line-height: 1.15;
+}
+
+.preview-banner span {
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.market-preview {
+  margin-bottom: 0;
+}
+
 .route-loading {
   background: var(--card);
   border: 1px solid var(--border);

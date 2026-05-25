@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { HashRouter, Route, Routes } from "react-router-dom";
 import { Globe2 } from "lucide-react";
 import { AppProvider, useApp } from "./AppContext";
+import { SHOWCASE_MODE } from "./config";
 import { Atmosphere } from "./components/Atmosphere";
 import { GallerySidebar } from "./components/GallerySidebar";
 import { Header } from "./components/Header";
@@ -30,7 +31,7 @@ function AppShell() {
           <Route path="/" element={<MintPage />} />
           <Route path="/marketplace" element={<MarketplacePage />} />
           <Route path="/whitepaper" element={<WhitepaperPage />} />
-          <Route path="/adminofforgottenworld" element={<AdminPage />} />
+          {!SHOWCASE_MODE && <Route path="/adminofforgottenworld" element={<AdminPage />} />}
         </Routes>
       </Suspense>
 
