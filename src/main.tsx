@@ -13,6 +13,7 @@ import "./styles.css";
 const AdminPage = lazy(() => import("./components/AdminPage").then((module) => ({ default: module.AdminPage })));
 const MarketplacePage = lazy(() => import("./components/MarketplacePage").then((module) => ({ default: module.MarketplacePage })));
 const MintPage = lazy(() => import("./components/MintPage").then((module) => ({ default: module.MintPage })));
+const WhitepaperPage = lazy(() => import("./components/WhitepaperPage").then((module) => ({ default: module.WhitepaperPage })));
 
 function AppShell() {
   const { activePhase, status, clearStatus, stats, openGallery } = useApp();
@@ -28,6 +29,7 @@ function AppShell() {
         <Routes>
           <Route path="/" element={<MintPage />} />
           <Route path="/marketplace" element={<MarketplacePage />} />
+          <Route path="/whitepaper" element={<WhitepaperPage />} />
           <Route path="/adminofforgottenworld" element={<AdminPage />} />
         </Routes>
       </Suspense>

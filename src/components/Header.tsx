@@ -27,6 +27,7 @@ export function Header() {
       <nav className="main-tabs">
         <NavLink to="/" end>Mint</NavLink>
         <NavLink to="/marketplace">Marketplace</NavLink>
+        <NavLink to="/whitepaper">Whitepaper</NavLink>
       </nav>
       {account && !isSepolia && (
         <button className="switch-pill" onClick={switchToSepolia}>
