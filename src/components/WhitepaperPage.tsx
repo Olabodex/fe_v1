@@ -301,6 +301,7 @@ export function WhitepaperPage() {
           <strong>How the pass system works</strong>
           <p>
             At mint launch, 1,500 free non-tradable Mint Passes will be available to claim. A non-tradable Mint Pass is required for Phase 1, and each pass allows up to 3 mints.
+            Phase 1 opens after the non-tradable Mint Pass supply is fully minted out.
           </p>
           <p>
             After the first 1,000 NFTs are minted, 400 wallets will be randomly selected to receive an additional tradable Mint Pass. Those passes can be used for Phase 4 minting or sold on the marketplace.

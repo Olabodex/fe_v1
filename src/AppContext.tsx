@@ -17,6 +17,12 @@ type ListingFilter = "all" | "1" | "2";
 
 type SignedTx = { wait: () => Promise<unknown>; hash?: string };
 
+function successMessageForAction(label: string) {
+  if (label === "Claiming initial pass") return "Initial pass minted successfully.";
+  if (label === "Minting worlds") return "NFT minted successfully.";
+  return `${label} confirmed successfully.`;
+}
+
 type AppContextValue = {
   account: string;
   chainId: number | null;
@@ -461,7 +467,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const tx = await action();
         setStatus({ type: "loading", message: tx.hash ? `Waiting for ${shortAddress(tx.hash)}...` : "Waiting for transaction..." });
         await tx.wait();
-        setStatus({ type: "success", message: `${label} complete.` });
+        setStatus({ type: "success", message: successMessageForAction(label), txHash: tx.hash });
         await refresh();
         await scanPasses();
         await scanOwnedNfts();

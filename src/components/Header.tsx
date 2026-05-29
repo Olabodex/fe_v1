@@ -8,6 +8,7 @@ import { shortAddress } from "../utils";
 export function Header() {
   const { account, isEthereumMainnet, status, connect, disconnect, switchToEthereumMainnet } = useApp();
   const [walletOpen, setWalletOpen] = useState(false);
+  const mobileAddress = account ? account.slice(0, 6) : "";
 
   const handleWalletClick = () => {
     if (!account) {
@@ -41,6 +42,7 @@ export function Header() {
           <button className="wallet-button wallet-trigger" type="button" onClick={handleWalletClick} aria-expanded={walletOpen}>
             <span className={`wallet-dot ${status.type === "loading" ? "pending" : ""}`} />
             {account && <span className="wallet-address">{shortAddress(account)}</span>}
+            {account && <span className="wallet-address-mobile">{mobileAddress}</span>}
             <Wallet size={16} />
           </button>
             {account && walletOpen && (

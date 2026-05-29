@@ -312,6 +312,10 @@ button {
   min-width: 46px;
 }
 
+.wallet-address-mobile {
+  display: none;
+}
+
 .wallet-popover {
   background: var(--card-strong);
   border: 1px solid var(--border);
@@ -420,6 +424,20 @@ button {
 .status-toast span {
   color: var(--muted);
   font-size: 13px;
+}
+
+.status-link {
+  align-items: center;
+  color: var(--accent);
+  display: inline-flex;
+  font-size: 13px;
+  gap: 5px;
+  margin-top: 6px;
+  text-decoration: none;
+}
+
+.status-link:hover {
+  text-decoration: underline;
 }
 
 .status-icon {
@@ -1808,9 +1826,15 @@ a:hover {
     padding: 0 11px;
   }
 
-  .wallet-trigger .wallet-dot,
   .wallet-address {
     display: none;
+  }
+
+  .wallet-address-mobile {
+    display: inline;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
   }
 
   .wallet-popover {

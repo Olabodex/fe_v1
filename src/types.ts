@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export type Status = { type: "idle" | "success" | "error" | "loading"; message: string };
+export type Status = { type: "idle" | "success" | "error" | "loading"; message: string; txHash?: string };
 
 export type ChainStats = {
   nftOwner: string;
