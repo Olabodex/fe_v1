@@ -267,7 +267,7 @@ export function WhitepaperPage() {
         <div className="whitepaper-copy">
           <p>
             The marketplace gives reward-pass holders a native place to list or move passes. Sales use a 15% fee, with 85% going to the seller.
-            Pass listings are capped at a maximum of 0.0005E, keeping access from turning into a runaway price game.
+            Pass listings are capped at a maximum of 0.00055E, keeping access from turning into a runaway price game.
           </p>
           <p>
             After mintout, marketplace fees can flow back into the world economy, and active NFT holders can share in them.
@@ -310,7 +310,7 @@ export function WhitepaperPage() {
           </p>
           <div className="tldr-note-row">
             <span>Max tradable pass listing</span>
-            <strong>0.0005E</strong>
+            <strong>0.00055E</strong>
             <span>Phase 4</span>
             <strong>Mint Pass holders only</strong>
           </div>

@@ -142,7 +142,7 @@ export function MarketplacePage() {
               <strong>Pass #{String(listing.passId)}</strong>
               <b>{eth(listing.price)}</b>
               <small>Seller {shortAddress(listing.seller)}</small>
-              {!SHOWCASE_MODE && <ActionButton tone="soft" disabled={!app.account || !app.isSepolia} onClick={() => app.buyPass(listing)}>Buy</ActionButton>}
+              {!SHOWCASE_MODE && <ActionButton tone="soft" disabled={!app.account || !app.isEthereumMainnet} onClick={() => app.buyPass(listing)}>Buy</ActionButton>}
             </article>
           ))}
         </div>

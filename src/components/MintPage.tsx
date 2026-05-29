@@ -17,7 +17,7 @@ export function MintPage() {
     phaseFourPasses,
     inventoryLoading,
     activePrice,
-    isSepolia,
+    isEthereumMainnet,
     activePhase,
     claimInitialPass,
     mintWorlds,
@@ -25,7 +25,7 @@ export function MintPage() {
   const claimLocked = !stats?.claimActive;
   const canMint =
     account &&
-    isSepolia &&
+    isEthereumMainnet &&
     stats &&
     !stats.paused &&
     activePhase !== 0 &&
@@ -47,7 +47,7 @@ export function MintPage() {
             <strong>{stats ? `${stats.initialPassMinted}/${stats.initialPassSupply}` : "..."}</strong>
             <span>{SHOWCASE_MODE ? "Claim access will open when the mint flow is ready." : account ? "Wallet eligibility is checked when you claim." : "Connect wallet to check eligibility."}</span>
           </div>
-          <ActionButton disabled={SHOWCASE_MODE || !account || !isSepolia || !stats?.claimActive} onClick={claimInitialPass}>
+          <ActionButton disabled={SHOWCASE_MODE || !account || !isEthereumMainnet || !stats?.claimActive} onClick={claimInitialPass}>
             <Check size={17} />
             {SHOWCASE_MODE ? "Preview Only" : "Claim Initial Pass"}
           </ActionButton>

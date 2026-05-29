@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ExternalLink, Lock, Pause, ShieldCheck, Sparkles, Sun } from "lucide-react";
 import { useApp } from "../AppContext";
-import { ADDRESSES, REWARD_TIER_NAMES } from "../contracts";
+import { ADDRESSES, ETHERSCAN_BASE_URL, REWARD_TIER_NAMES } from "../contracts";
 import { eth, shortAddress } from "../utils";
 import { ActionButton, Field, Section, SelectField, StepperField } from "./ui";
 
@@ -9,7 +9,7 @@ export function AdminPage() {
   const {
     account,
     isOwner,
-    isSepolia,
+    isEthereumMainnet,
     statsLoading,
     stats,
     canSubmitAdmin,
@@ -29,13 +29,13 @@ export function AdminPage() {
   } = useApp();
   const [adminPhase, setAdminPhase] = useState("0");
   const [adminPricePhase, setAdminPricePhase] = useState("1");
-  const [adminPrice, setAdminPrice] = useState("0.001");
+  const [adminPrice, setAdminPrice] = useState("0.0002");
   const [rewardTokenId, setRewardTokenId] = useState("");
   const [rewardTier, setRewardTier] = useState("1");
   const [rewardPoolAmount, setRewardPoolAmount] = useState("0.01");
   const [winnerCount, setWinnerCount] = useState("10");
   const [withdrawTo, setWithdrawTo] = useState("");
-  const [marketMaxPrice, setMarketMaxPrice] = useState("0.002");
+  const [marketMaxPrice, setMarketMaxPrice] = useState("0.00055");
   const [marketTransferFee, setMarketTransferFee] = useState("0.0002");
   const [confirmAction, setConfirmAction] = useState<"finalize" | "lock" | null>(null);
 
@@ -43,7 +43,7 @@ export function AdminPage() {
     <div className="admin-shell">
       <div className="contract-pills">
         {Object.entries(ADDRESSES).map(([key, value]) => (
-          <a href={`https://sepolia.etherscan.io/address/${value}`} key={key} target="_blank" rel="noreferrer">
+          <a href={`${ETHERSCAN_BASE_URL}/address/${value}`} key={key} target="_blank" rel="noreferrer">
             {key} <ExternalLink size={13} />
           </a>
         ))}
@@ -52,14 +52,14 @@ export function AdminPage() {
       {(!canSubmitAdmin || ownerCheckFailed) && !statsLoading && (
         <div className="admin-notice">
           <Lock size={34} />
-          <strong>{account ? (ownerCheckFailed ? "Owner not verified" : "Admin actions need Sepolia") : "Connect an admin wallet"}</strong>
+          <strong>{account ? (ownerCheckFailed ? "Owner not verified" : "Admin actions need Ethereum mainnet") : "Connect an admin wallet"}</strong>
           <span>
             {account
               ? ownerCheckFailed
                 ? `Connected: ${shortAddress(account)}. Contract owner check says this wallet is not an owner.`
-                : isSepolia
+                : isEthereumMainnet
                   ? `Connected: ${shortAddress(account)}`
-                  : "Switch to Sepolia to use admin actions."
+                  : "Switch to Ethereum mainnet to use admin actions."
               : "Inputs stay editable, but transactions need the owner wallet."}
           </span>
         </div>

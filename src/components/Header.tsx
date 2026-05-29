@@ -6,7 +6,7 @@ import { SHOWCASE_MODE } from "../config";
 import { shortAddress } from "../utils";
 
 export function Header() {
-  const { account, isSepolia, status, connect, disconnect, switchToSepolia } = useApp();
+  const { account, isEthereumMainnet, status, connect, disconnect, switchToEthereumMainnet } = useApp();
   const [walletOpen, setWalletOpen] = useState(false);
 
   const handleWalletClick = () => {
@@ -23,16 +23,16 @@ export function Header() {
   };
 
   return (
-    <header className={`site-header ${account && !isSepolia ? "chain-warning" : ""}`}>
+    <header className={`site-header ${account && !isEthereumMainnet ? "chain-warning" : ""}`}>
       <Link className="brand" to="/">Forgotten Worlds</Link>
       <nav className="main-tabs">
         <NavLink to="/" end>Mint</NavLink>
         <NavLink to="/marketplace">Marketplace</NavLink>
         <NavLink to="/whitepaper">Whitepaper</NavLink>
       </nav>
-      {account && !isSepolia && (
-        <button className="switch-pill" onClick={switchToSepolia}>
-          Switch to Sepolia
+      {account && !isEthereumMainnet && (
+        <button className="switch-pill" onClick={switchToEthereumMainnet}>
+          Switch to Ethereum
         </button>
       )}
       {!SHOWCASE_MODE && (

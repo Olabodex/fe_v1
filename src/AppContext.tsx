@@ -2,10 +2,11 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { BrowserProvider, Contract, parseEther } from "ethers";
 import {
   ADDRESSES,
+  ETHEREUM_CHAIN_ID,
+  ETHEREUM_CHAIN_ID_HEX,
   MARKETPLACE_ABI,
   NFT_ABI,
   PASS_ABI,
-  SEPOLIA_CHAIN_ID,
 } from "./contracts";
 import { SHOWCASE_MODE } from "./config";
 import type { ChainStats, Listing, NftItem, OwnedPass, Status } from "./types";
@@ -48,7 +49,7 @@ type AppContextValue = {
   setInspectKind: (value: "pass" | "nft" | null) => void;
   activePhase: number;
   activePrice: bigint;
-  isSepolia: boolean;
+  isEthereumMainnet: boolean;
   isOwner: boolean;
   phaseOnePass?: OwnedPass;
   phaseFourPasses: OwnedPass[];
@@ -60,7 +61,7 @@ type AppContextValue = {
   ownerCheckFailed: boolean;
   connect: () => Promise<void>;
   disconnect: () => void;
-  switchToSepolia: () => Promise<void>;
+  switchToEthereumMainnet: () => Promise<void>;
   clearStatus: () => void;
   openGallery: () => void;
   closeGallery: () => void;
@@ -147,7 +148,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedNftId, setSelectedNftId] = useState("");
   const [marketMode, setMarketMode] = useState<MarketMode>("list");
   const [listingFilter, setListingFilter] = useState<ListingFilter>("all");
-  const [listPrice, setListPrice] = useState("0.001");
+  const [listPrice, setListPrice] = useState("0.00055");
   const [transferTo, setTransferTo] = useState("");
   const [inspectKind, setInspectKind] = useState<"pass" | "nft" | null>(null);
   const latestGalleryIdRef = useRef<bigint | undefined>(undefined);
@@ -182,7 +183,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [provider]);
 
   const activePhase = stats?.activePhase ?? 0;
-  const isSepolia = chainId === SEPOLIA_CHAIN_ID;
+  const isEthereumMainnet = chainId === ETHEREUM_CHAIN_ID;
   const totalMinted = stats?.totalMinted;
   const activePrice = stats?.phasePrices[Math.max(activePhase - 1, 0)] ?? 0n;
   const phaseOnePass = ownedPasses.find((item) => item.canUsePhaseOne);
@@ -196,7 +197,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       account &&
       (isSameAddress(account, stats.nftOwner) || isSameAddress(account, stats.passOwner) || isSameAddress(account, stats.marketplaceOwner)),
   );
-  const canSubmitAdmin = Boolean(account && isSepolia);
+  const canSubmitAdmin = Boolean(account && isEthereumMainnet);
   const ownerCheckFailed = Boolean(account && stats && !isOwner);
 
   const readTokenMetadata = useCallback(
@@ -220,7 +221,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const network = await provider.getNetwork();
       const nextChainId = Number(network.chainId);
       setChainId(nextChainId);
-      if (nextChainId !== SEPOLIA_CHAIN_ID) {
+      if (nextChainId !== ETHEREUM_CHAIN_ID) {
         setStats(null);
         return;
       }
@@ -348,7 +349,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [contracts, provider]);
 
   const scanPasses = useCallback(async () => {
-    if (!contracts || !stats || !isSepolia || passScanInFlightRef.current) return;
+    if (!contracts || !stats || !isEthereumMainnet || passScanInFlightRef.current) return;
     passScanInFlightRef.current = true;
     setInventoryLoading(true);
     try {
@@ -383,10 +384,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       passScanInFlightRef.current = false;
       setInventoryLoading(false);
     }
-  }, [account, contracts, isSepolia, selectedPassId, stats]);
+  }, [account, contracts, isEthereumMainnet, selectedPassId, stats]);
 
   const scanOwnedNfts = useCallback(async () => {
-    if (!contracts || !stats || !account || !isSepolia || nftScanInFlightRef.current) return;
+    if (!contracts || !stats || !account || !isEthereumMainnet || nftScanInFlightRef.current) return;
     nftScanInFlightRef.current = true;
     setInventoryLoading(true);
     try {
@@ -413,10 +414,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       nftScanInFlightRef.current = false;
       setInventoryLoading(false);
     }
-  }, [account, contracts, isSepolia, readTokenMetadata, selectedNftId, stats]);
+  }, [account, contracts, isEthereumMainnet, readTokenMetadata, selectedNftId, stats]);
 
   const loadGallery = useCallback(async () => {
-    if (!contracts || totalMinted === undefined || !isSepolia || galleryInFlightRef.current) return;
+    if (!contracts || totalMinted === undefined || !isEthereumMainnet || galleryInFlightRef.current) return;
     galleryInFlightRef.current = true;
     setGalleryLoading(true);
     try {
@@ -451,7 +452,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       galleryInFlightRef.current = false;
       setGalleryLoading(false);
     }
-  }, [contracts, isSepolia, readTokenMetadata, totalMinted]);
+  }, [contracts, isEthereumMainnet, readTokenMetadata, totalMinted]);
 
   const runTx = useCallback(
     async (label: string, action: () => Promise<SignedTx>) => {
@@ -510,8 +511,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     lastInventoryScanRef.current = "";
   }, []);
 
-  const switchToSepolia = useCallback(async () => {
-    await window.ethereum?.request?.({ method: "wallet_switchEthereumChain", params: [{ chainId: "0xaa36a7" }] });
+  const switchToEthereumMainnet = useCallback(async () => {
+    await window.ethereum?.request?.({ method: "wallet_switchEthereumChain", params: [{ chainId: ETHEREUM_CHAIN_ID_HEX }] });
   }, []);
 
   const clearStatus = useCallback(() => setStatus({ type: "idle", message: "" }), []);
@@ -576,7 +577,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   useEffect(() => {
-    if (!stats || !account || !isSepolia || !pageVisible) return;
+    if (!stats || !account || !isEthereumMainnet || !pageVisible) return;
     const scanKey = `${account.toLowerCase()}-${stats.passTotalMinted.toString()}-${stats.totalMinted.toString()}`;
     if (lastInventoryScanRef.current === scanKey) return;
     lastInventoryScanRef.current = scanKey;
@@ -585,7 +586,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       scanOwnedNfts().catch((error) => setStatus({ type: "error", message: compactStatusMessage(error) }));
     }, 250);
     return () => window.clearTimeout(timer);
-  }, [account, isSepolia, pageVisible, scanOwnedNfts, scanPasses, stats]);
+  }, [account, isEthereumMainnet, pageVisible, scanOwnedNfts, scanPasses, stats]);
 
   useEffect(() => {
     if (!pageVisible) return;
@@ -644,7 +645,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setInspectKind,
     activePhase,
     activePrice,
-    isSepolia,
+    isEthereumMainnet,
     isOwner,
     phaseOnePass,
     phaseFourPasses,
@@ -656,7 +657,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     ownerCheckFailed,
     connect,
     disconnect,
-    switchToSepolia,
+    switchToEthereumMainnet,
     clearStatus,
     openGallery,
     closeGallery,
