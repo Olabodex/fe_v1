@@ -6,6 +6,8 @@ const phases = [
     name: "First Dawn",
     supply: "1,000 worlds",
     share: "50%",
+    price: "0.0002E",
+    access: "Non-tradable Mint Pass required",
     tone: "Early access",
     copy: "The first half of the collection belongs to the earliest minters. Phase 1 gives them the widest entry point and a clear first-mover position without letting the entire collection disappear at once.",
   },
@@ -13,6 +15,8 @@ const phases = [
     name: "Convergence",
     supply: "300 worlds",
     share: "15%",
+    price: "0.0004E",
+    access: "Public mint",
     tone: "New entry",
     copy: "Phase 2 keeps the door open for people who arrive after the first rush. It is smaller, but it still gives newer minters a real place in the collection.",
   },
@@ -20,6 +24,8 @@ const phases = [
     name: "Ruinfall",
     supply: "500 worlds",
     share: "25%",
+    price: "0.0005E",
+    access: "Public mint",
     tone: "Rarity climbs",
     copy: "Phase 3 carries more rare visual outcomes. This is where the world starts to feel more unstable, and the art reflects that shift.",
   },
@@ -27,6 +33,8 @@ const phases = [
     name: "Burned Horizon",
     supply: "200 worlds",
     share: "10%",
+    price: "0.001E",
+    access: "Tradable Mint Pass required",
     tone: "Final scarcity",
     copy: "Phase 4 is the smallest phase and the rarest visual pool. It rewards patience, reward-pass holders, and collectors who want the final edge of the world.",
   },
@@ -115,15 +123,15 @@ export function WhitepaperPage() {
           <div className="whitepaper-table-head">
             <span>Phase</span>
             <span>Supply</span>
-            <span>Share</span>
+            <span>Price</span>
             <span>What it means</span>
           </div>
           {phases.map((phase) => (
             <div className="whitepaper-table-row" key={phase.name}>
               <strong>{phase.name}</strong>
               <span>{phase.supply}</span>
-              <span>{phase.share}</span>
-              <span>{phase.tone}</span>
+              <span>{phase.price}</span>
+              <span>{phase.access}</span>
             </div>
           ))}
         </div>
@@ -151,7 +159,8 @@ export function WhitepaperPage() {
             <div className="phase-art">{index === 3 ? <Moon size={34} /> : <Sun size={34} />}</div>
             <span>{phase.supply} / {phase.share}</span>
             <h3>{phase.name}</h3>
-            <strong>{phase.tone}</strong>
+            <strong>{phase.price}</strong>
+            <b>{phase.access}</b>
             <p>{phase.copy}</p>
           </article>
         ))}
@@ -258,7 +267,7 @@ export function WhitepaperPage() {
         <div className="whitepaper-copy">
           <p>
             The marketplace gives reward-pass holders a native place to list or move passes. Sales use a 15% fee, with 85% going to the seller.
-            Pass listings are capped at a maximum of $2, keeping access from turning into a runaway price game.
+            Pass listings are capped at a maximum of 0.0005E, keeping access from turning into a runaway price game.
           </p>
           <p>
             After mintout, marketplace fees can flow back into the world economy, and active NFT holders can share in them.
@@ -267,6 +276,44 @@ export function WhitepaperPage() {
             A burned NFT no longer counts as active. That matters because future fee sharing is divided among the active worlds that remain.
             Holding can become stronger over time if more worlds leave the active supply.
           </p>
+        </div>
+      </Section>
+
+      <Section title="TLDR" icon={<BookOpen size={20} />} className="tldr-section">
+        <div className="tldr-layout">
+          <div className="tldr-supply">
+            <span>Total supply</span>
+            <strong>2,000 NFTs</strong>
+            <p>Four phases, two public windows, and two pass-gated windows.</p>
+          </div>
+          <div className="tldr-phase-list">
+            {phases.map((phase, index) => (
+              <article className={`tldr-phase phase-tone-${Math.min(index + 1, 4)}`} key={phase.name}>
+                <span>Phase {index + 1}</span>
+                <strong>{phase.supply.replace("worlds", "NFTs")}</strong>
+                <b>{phase.price}</b>
+                <small>{phase.access}</small>
+              </article>
+            ))}
+          </div>
+        </div>
+        <div className="tldr-pass-card">
+          <strong>How the pass system works</strong>
+          <p>
+            At mint launch, 1,500 free non-tradable Mint Passes will be available to claim. A non-tradable Mint Pass is required for Phase 1, and each pass allows up to 3 mints.
+          </p>
+          <p>
+            After the first 1,000 NFTs are minted, 400 wallets will be randomly selected to receive an additional tradable Mint Pass. Those passes can be used for Phase 4 minting or sold on the marketplace.
+          </p>
+          <p>
+            Phase 2 and Phase 3 are public. During Phase 2, every wallet that mints earns 2 tradable Mint Passes, creating another route into Phase 4.
+          </p>
+          <div className="tldr-note-row">
+            <span>Max tradable pass listing</span>
+            <strong>0.0005E</strong>
+            <span>Phase 4</span>
+            <strong>Mint Pass holders only</strong>
+          </div>
         </div>
       </Section>
     </div>

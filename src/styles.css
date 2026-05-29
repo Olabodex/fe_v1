@@ -668,6 +668,16 @@ button {
   color: #f4f0e8;
 }
 
+.phase-tone-4 span,
+.phase-tone-4 small,
+.phase-tone-4 p {
+  color: rgba(244, 240, 232, 0.78);
+}
+
+.phase-tone-4 strong {
+  color: #fff8ed;
+}
+
 .phase-art {
   color: var(--accent);
   position: absolute;
@@ -1182,6 +1192,109 @@ a:hover {
   grid-template-columns: repeat(3, 1fr);
 }
 
+.tldr-layout {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(220px, 0.55fr) minmax(0, 1.45fr);
+  margin-bottom: 14px;
+}
+
+.tldr-supply,
+.tldr-pass-card,
+.tldr-phase {
+  background: var(--card-strong);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.tldr-supply {
+  align-content: center;
+  display: grid;
+  gap: 8px;
+  min-height: 180px;
+  padding: 18px;
+}
+
+.tldr-supply span,
+.tldr-phase span,
+.tldr-phase small,
+.tldr-note-row span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.tldr-supply strong {
+  font-family: "DynaPuff", ui-rounded, system-ui, sans-serif;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.tldr-supply p,
+.tldr-pass-card p {
+  color: var(--muted);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.tldr-phase-list {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.tldr-phase {
+  display: grid;
+  gap: 8px;
+  min-height: 180px;
+  padding: 14px;
+}
+
+.tldr-phase strong {
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.tldr-phase b {
+  color: var(--accent);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.tldr-phase.phase-tone-4 b {
+  color: #fff8ed;
+}
+
+.tldr-phase small {
+  align-self: end;
+  line-height: 1.25;
+}
+
+.tldr-pass-card {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+}
+
+.tldr-pass-card > strong {
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.tldr-note-row {
+  background: var(--accent-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 6px 12px;
+  grid-template-columns: repeat(4, auto);
+  margin-top: 4px;
+  padding: 12px;
+}
+
+.tldr-note-row strong {
+  line-height: 1.2;
+}
+
 .whitepaper-summary > div,
 .whitepaper-note,
 .rarity-list > div {
@@ -1622,10 +1735,15 @@ a:hover {
 
   .whitepaper-hero,
   .trait-rarity-layout,
+  .tldr-layout,
   .whitepaper-split,
   .whitepaper-phase-grid,
   .whitepaper-summary {
     grid-template-columns: 1fr;
+  }
+
+  .tldr-phase-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .rarity-list {
@@ -1724,6 +1842,56 @@ a:hover {
   .whitepaper-table.compact .whitepaper-table-row {
     align-items: start;
     gap: 4px;
+    grid-template-columns: 1fr;
+  }
+
+  .tldr-phase-list,
+  .tldr-note-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tldr-layout {
+    gap: 8px;
+  }
+
+  .tldr-supply {
+    min-height: 0;
+    padding: 10px 12px;
+  }
+
+  .tldr-supply strong {
+    font-size: 24px;
+  }
+
+  .tldr-supply p {
+    font-size: 12px;
+    line-height: 1.25;
+  }
+
+  .tldr-phase-list {
+    gap: 8px;
+  }
+
+  .tldr-phase {
+    gap: 4px;
+    min-height: 112px;
+    padding: 10px;
+  }
+
+  .tldr-phase strong {
+    font-size: 16px;
+  }
+
+  .tldr-phase b {
+    font-size: 18px;
+  }
+
+  .tldr-phase small {
+    font-size: 11px;
+    line-height: 1.15;
+  }
+
+  .tldr-note-row {
     grid-template-columns: 1fr;
   }
 
