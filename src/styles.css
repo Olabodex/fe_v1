@@ -1260,8 +1260,24 @@ a:hover {
   line-height: 1;
 }
 
+.tldr-phase.phase-tone-4 {
+  background: var(--card-strong);
+  color: var(--text);
+}
+
+.tldr-phase.phase-tone-4 span,
+.tldr-phase.phase-tone-4 small {
+  color: var(--muted);
+}
+
+.tldr-phase.phase-tone-4 strong {
+  color: var(--text);
+  text-shadow: none;
+}
+
 .tldr-phase.phase-tone-4 b {
-  color: #fff8ed;
+  color: var(--accent);
+  display: block;
 }
 
 .tldr-phase small {
