@@ -7,6 +7,7 @@ import { SHOWCASE_MODE } from "./config";
 import { Atmosphere } from "./components/Atmosphere";
 import { GallerySidebar } from "./components/GallerySidebar";
 import { Header } from "./components/Header";
+import { RecentActivityToast } from "./components/RecentActivityToast";
 import { StatsBar } from "./components/StatsBar";
 import { StatusToast } from "./components/StatusToast";
 import "./styles.css";
@@ -17,12 +18,13 @@ const MintPage = lazy(() => import("./components/MintPage").then((module) => ({ 
 const WhitepaperPage = lazy(() => import("./components/WhitepaperPage").then((module) => ({ default: module.WhitepaperPage })));
 
 function AppShell() {
-  const { activePhase, status, clearStatus, stats, openGallery } = useApp();
+  const { activePhase, status, clearStatus, stats, openGallery, recentActivities, dismissRecentActivity } = useApp();
 
   return (
     <main className={`app phase-${activePhase || 0} ${activePhase === 4 ? "night" : ""}`} data-phase={activePhase || 0}>
       <Atmosphere phase={activePhase} />
       <Header />
+      <RecentActivityToast activity={recentActivities[0]} onDone={dismissRecentActivity} />
       <StatusToast status={status} onClose={clearStatus} />
       <StatsBar />
 

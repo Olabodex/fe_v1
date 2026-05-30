@@ -9,7 +9,7 @@ import {
   PASS_ABI,
 } from "./contracts";
 import { SHOWCASE_MODE } from "./config";
-import type { ChainStats, Listing, NftItem, OwnedPass, Status } from "./types";
+import type { ChainStats, Listing, NftItem, OwnedPass, RecentActivity, Status } from "./types";
 import { compactStatusMessage, imageFromTokenUri, isSameAddress, mapWithConcurrency, shortAddress } from "./utils";
 
 type MarketMode = "list" | "passTransfer" | "nftTransfer";
@@ -23,12 +23,19 @@ function successMessageForAction(label: string) {
   return `${label} confirmed successfully.`;
 }
 
+function activityTitleForAction(label: string) {
+  if (label === "Claiming initial pass") return "Pass minted";
+  if (label === "Minting worlds") return "World minted";
+  return "Transaction confirmed";
+}
+
 type AppContextValue = {
   account: string;
   chainId: number | null;
   stats: ChainStats | null;
   statsLoading: boolean;
   status: Status;
+  recentActivities: RecentActivity[];
   quantity: number;
   setQuantity: (value: number) => void;
   ownedPasses: OwnedPass[];
@@ -69,6 +76,7 @@ type AppContextValue = {
   disconnect: () => void;
   switchToEthereumMainnet: () => Promise<void>;
   clearStatus: () => void;
+  dismissRecentActivity: (id: number) => void;
   openGallery: () => void;
   closeGallery: () => void;
   claimInitialPass: () => Promise<void>;
@@ -142,6 +150,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [stats, setStats] = useState<ChainStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
   const [status, setStatus] = useState<Status>({ type: "idle", message: "" });
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [ownedPasses, setOwnedPasses] = useState<OwnedPass[]>([]);
   const [ownedNfts, setOwnedNfts] = useState<NftItem[]>([]);
@@ -158,6 +167,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [transferTo, setTransferTo] = useState("");
   const [inspectKind, setInspectKind] = useState<"pass" | "nft" | null>(null);
   const latestGalleryIdRef = useRef<bigint | undefined>(undefined);
+  const activityIdRef = useRef(0);
   const lastInventoryScanRef = useRef("");
   const refreshInFlightRef = useRef(false);
   const passScanInFlightRef = useRef(false);
@@ -219,7 +229,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (): Promise<ChainStats | undefined> => {
     if (!contracts || !provider || refreshInFlightRef.current) return;
     refreshInFlightRef.current = true;
     setStatsLoading(true);
@@ -229,7 +239,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setChainId(nextChainId);
       if (nextChainId !== ETHEREUM_CHAIN_ID) {
         setStats(null);
-        return;
+        return undefined;
       }
 
       const codeCheckKey = `${nextChainId}:${ADDRESSES.nft}:${ADDRESSES.pass}:${ADDRESSES.marketplace}`;
@@ -243,7 +253,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if ([nftCode, passCode, marketplaceCode].some((code) => code === "0x")) {
           setStats(DEMO_STATS);
           setStatus({ type: "idle", message: "" });
-          return;
+          return DEMO_STATS;
         }
         contractCodeCheckedRef.current = codeCheckKey;
       }
@@ -315,7 +325,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         marketplaceRead.collectedFees(),
       ]);
 
-      setStats({
+      const nextStats: ChainStats = {
         nftOwner,
         passOwner,
         marketplaceOwner,
@@ -347,19 +357,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
         maxListingPrice,
         transferFee,
         collectedFees,
-      });
+      };
+      setStats(nextStats);
+      return nextStats;
     } finally {
       refreshInFlightRef.current = false;
       setStatsLoading(false);
     }
   }, [contracts, provider]);
 
-  const scanPasses = useCallback(async () => {
-    if (!contracts || !stats || !isEthereumMainnet || passScanInFlightRef.current) return;
+  const scanPasses = useCallback(async (statsOverride?: ChainStats) => {
+    const statsToScan = statsOverride ?? stats;
+    if (!contracts || !statsToScan || !isEthereumMainnet || passScanInFlightRef.current) return;
     passScanInFlightRef.current = true;
     setInventoryLoading(true);
     try {
-      const ids = Array.from({ length: Number(stats.passTotalMinted) }, (_, index) => BigInt(index + 1));
+      const ids = Array.from({ length: Number(statsToScan.passTotalMinted) }, (_, index) => BigInt(index + 1));
       const passRows = await mapWithConcurrency(ids, 12, async (id) => {
         try {
           const [passType, canUsePhaseOne, canUsePhaseFour, sellable, listing, owner] = await Promise.all([
@@ -467,9 +480,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const tx = await action();
         setStatus({ type: "loading", message: tx.hash ? `Waiting for ${shortAddress(tx.hash)}...` : "Waiting for transaction..." });
         await tx.wait();
-        setStatus({ type: "success", message: successMessageForAction(label), txHash: tx.hash });
-        await refresh();
-        await scanPasses();
+        const successMessage = successMessageForAction(label);
+        setStatus({ type: "success", message: successMessage, txHash: tx.hash });
+        const activity: RecentActivity = {
+          id: activityIdRef.current++,
+          title: activityTitleForAction(label),
+          message: successMessage,
+          txHash: tx.hash,
+        };
+        setRecentActivities((items) => [...items, activity].slice(-8));
+        const refreshedStats = await refresh();
+        await scanPasses(label === "Claiming initial pass" ? refreshedStats : undefined);
         await scanOwnedNfts();
       } catch (error) {
         setStatus({ type: "error", message: compactStatusMessage(error) });
@@ -522,6 +543,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const clearStatus = useCallback(() => setStatus({ type: "idle", message: "" }), []);
+  const dismissRecentActivity = useCallback((id: number) => {
+    setRecentActivities((items) => items.filter((item) => item.id !== id));
+  }, []);
 
   const openGallery = useCallback(() => {
     setGalleryOpen(true);
@@ -625,6 +649,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     stats,
     statsLoading,
     status,
+    recentActivities,
     quantity,
     setQuantity,
     ownedPasses,
@@ -665,6 +690,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     disconnect,
     switchToEthereumMainnet,
     clearStatus,
+    dismissRecentActivity,
     openGallery,
     closeGallery,
     claimInitialPass: async () => {

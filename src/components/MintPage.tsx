@@ -1,18 +1,21 @@
-import { Check, Lock, Minus, Moon, Plus, Sparkles, Sun } from "lucide-react";
+import { useState } from "react";
+import { Check, Download, Image, Lock, Minus, Moon, Plus, Sparkles, Sun, X } from "lucide-react";
 import { useApp } from "../AppContext";
 import { SHOWCASE_MODE } from "../config";
-import { PASS_TYPE_NAMES, PHASE_SUPPLIES } from "../contracts";
-import type { OwnedPass } from "../types";
+import { ADDRESSES, PASS_TYPE_NAMES, PHASE_NAMES, PHASE_SUPPLIES, REWARD_TIER_NAMES } from "../contracts";
+import type { NftItem, OwnedPass } from "../types";
 import { eth, phaseLabels, phaseSubtitles } from "../utils";
 import { ActionButton, Section } from "./ui";
 
 export function MintPage() {
+  const [previewNft, setPreviewNft] = useState<NftItem | null>(null);
   const {
     account,
     stats,
     quantity,
     setQuantity,
     ownedPasses,
+    ownedNfts,
     phaseOnePass,
     phaseFourPasses,
     inventoryLoading,
@@ -88,6 +91,12 @@ export function MintPage() {
           </ActionButton>
         </div>
       </Section>
+
+      <Section title="Your Worlds" icon={<Image size={20} />}>
+        <NftMiniGallery nfts={ownedNfts} loading={inventoryLoading} account={account} onSelect={setPreviewNft} />
+      </Section>
+
+      {previewNft && <NftPreviewModal nft={previewNft} onClose={() => setPreviewNft(null)} />}
     </div>
   );
 }
@@ -104,6 +113,122 @@ function PassStrip({ passes, loading, preview }: { passes: OwnedPass[]; loading:
       ))}
     </div>
   );
+}
+
+function NftMiniGallery({
+  nfts,
+  loading,
+  account,
+  onSelect,
+}: {
+  nfts: NftItem[];
+  loading: boolean;
+  account: string;
+  onSelect: (nft: NftItem) => void;
+}) {
+  return (
+    <div className="owned-worlds">
+      <div className="owned-worlds-header">
+        <span>{account ? (loading ? "Refreshing your worlds..." : `${nfts.length} owned`) : "Connect wallet to view your worlds"}</span>
+        <strong>{nfts.length > 0 ? "Tap a world to inspect it live" : "No worlds detected"}</strong>
+      </div>
+      {nfts.length === 0 ? (
+        <div className="empty-state owned-worlds-empty">
+          <span>{account ? "Minted NFTs will show here after your wallet inventory refreshes." : "Your minted NFTs will appear here after connecting."}</span>
+        </div>
+      ) : (
+        <div className="owned-world-grid">
+          {nfts.map((nft) => (
+            <article className="owned-world-tile" key={String(nft.id)}>
+              <button type="button" className="owned-world-preview-button" onClick={() => onSelect(nft)}>
+                <NftArtwork nft={nft} />
+                <span>{nft.name ?? `World #${String(nft.id)}`}</span>
+              </button>
+              <a className="opensea-token-link" href={openSeaTokenUrl(nft.id)} target="_blank" rel="noreferrer">
+                <img src="/opensea-white-logo.svg" alt="" />
+                OpenSea
+              </a>
+            </article>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NftPreviewModal({ nft, onClose }: { nft: NftItem; onClose: () => void }) {
+  const canDownload = Boolean(nft.image);
+
+  return (
+    <div className="nft-preview-overlay" role="dialog" aria-modal="true" aria-label={nft.name ?? `World #${String(nft.id)}`} onClick={onClose}>
+      <div className="nft-preview-panel" onClick={(event) => event.stopPropagation()}>
+        <button type="button" className="nft-preview-close" onClick={onClose} aria-label="Close NFT preview">
+          <X size={18} />
+        </button>
+        <div className="nft-preview-art">
+          <NftArtwork nft={nft} live />
+        </div>
+        <div className="nft-preview-meta">
+          <strong>{nft.name ?? `World #${String(nft.id)}`}</strong>
+          <span>{PHASE_NAMES[nft.phase]} - {REWARD_TIER_NAMES[nft.rewardTier]}</span>
+          <button type="button" className="nft-download-button" disabled={!canDownload} onClick={() => void downloadNftPng(nft)}>
+            <Download size={16} />
+            Download PNG
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+async function downloadNftPng(nft: NftItem) {
+  if (!nft.image) return;
+  const image = await loadImageForDownload(nft.image);
+  const size = Math.max(image.naturalWidth, image.naturalHeight, 1024);
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext("2d");
+  if (!context) return;
+  context.clearRect(0, 0, size, size);
+  context.drawImage(image, 0, 0, size, size);
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
+  if (!blob) return;
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${fileSafeName(nft.name ?? `forgotten-world-${String(nft.id)}`)}.png`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function loadImageForDownload(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new window.Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+}
+
+function fileSafeName(value: string) {
+  return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "forgotten-world";
+}
+
+function openSeaTokenUrl(id: bigint) {
+  return `https://opensea.io/item/ethereum/${ADDRESSES.nft.toLowerCase()}/${String(id)}`;
+}
+
+function NftArtwork({ nft, live }: { nft: NftItem; live?: boolean }) {
+  if (!nft.image) return <div className="image-fallback">#{String(nft.id)}</div>;
+  const isSvg = nft.image.startsWith("data:image/svg+xml") || nft.image.toLowerCase().includes(".svg");
+  if (live && isSvg) {
+    return <iframe className="nft-live-frame" title={nft.name ?? `World #${String(nft.id)}`} src={nft.image} sandbox="" />;
+  }
+  return <img src={nft.image} alt={nft.name ?? `World #${String(nft.id)}`} />;
 }
 
 function PhaseCard({

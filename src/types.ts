@@ -2,6 +2,13 @@ import type { ReactNode } from "react";
 
 export type Status = { type: "idle" | "success" | "error" | "loading"; message: string; txHash?: string };
 
+export type RecentActivity = {
+  id: number;
+  title: string;
+  message: string;
+  txHash?: string;
+};
+
 export type ChainStats = {
   nftOwner: string;
   passOwner: string;
