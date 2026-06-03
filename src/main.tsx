@@ -21,7 +21,7 @@ function AppShell() {
   const { activePhase, status, clearStatus, stats, openGallery, recentActivities, dismissRecentActivity } = useApp();
 
   return (
-    <main className={`app phase-${activePhase || 0} ${activePhase === 4 ? "night" : ""}`} data-phase={activePhase || 0}>
+    <main className={`app phase-${activePhase || 0} ${activePhase === 3 || activePhase === 4 ? "night" : ""}`} data-phase={activePhase || 0}>
       <Atmosphere phase={activePhase} />
       <Header />
       <RecentActivityToast activity={recentActivities[0]} onDone={dismissRecentActivity} />

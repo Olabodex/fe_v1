@@ -4,7 +4,7 @@ export const phaseLabels: Record<number, string> = {
   0: "Locked",
   1: "Morning",
   2: "Afternoon",
-  3: "Dusk",
+  3: "Night",
   4: "Night",
 };
 

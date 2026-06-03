@@ -1,4 +1,5 @@
 import { useApp } from "../AppContext";
+import { DISPLAY_MAX_SUPPLY } from "../contracts";
 import { eth, phaseLabels } from "../utils";
 
 export function StatsBar() {
@@ -12,7 +13,7 @@ export function StatsBar() {
       </div>
       <div>
         <span>Worlds Minted</span>
-        <strong>{stats ? `${stats.totalMinted}/${stats.maxSupply}` : "..."}</strong>
+        <strong>{stats ? `${stats.totalMinted}/${DISPLAY_MAX_SUPPLY}` : "..."}</strong>
       </div>
       <div>
         <span>Pass Claims</span>

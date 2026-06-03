@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useRef, useState, type Ref } from "react";
 import { Check, Download, Image, Lock, Minus, Moon, Plus, Sparkles, Sun, X } from "lucide-react";
 import { useApp } from "../AppContext";
 import { SHOWCASE_MODE } from "../config";
-import { ADDRESSES, PASS_TYPE_NAMES, PHASE_NAMES, PHASE_SUPPLIES, REWARD_TIER_NAMES } from "../contracts";
+import { ADDRESSES, DISPLAY_PHASE_SUPPLIES, PASS_TYPE_NAMES, PHASE_NAMES, REWARD_TIER_NAMES, VISIBLE_MINT_PHASES } from "../contracts";
 import type { NftItem, OwnedPass } from "../types";
 import { eth, phaseLabels, phaseSubtitles } from "../utils";
 import { ActionButton, Section } from "./ui";
@@ -17,7 +17,6 @@ export function MintPage() {
     ownedPasses,
     ownedNfts,
     phaseOnePass,
-    phaseFourPasses,
     inventoryLoading,
     activePrice,
     isEthereumMainnet,
@@ -25,15 +24,22 @@ export function MintPage() {
     claimInitialPass,
     mintWorlds,
   } = useApp();
+  const activeCardRef = useRef<HTMLElement | null>(null);
   const claimLocked = !stats?.claimActive;
+  const activePhaseVisible = VISIBLE_MINT_PHASES.some((phase) => phase === activePhase);
   const canMint =
     account &&
     isEthereumMainnet &&
     stats &&
     !stats.paused &&
     activePhase !== 0 &&
-    (activePhase !== 1 || phaseOnePass) &&
-    (activePhase !== 4 || phaseFourPasses.length >= quantity);
+    activePhaseVisible &&
+    (activePhase !== 1 || phaseOnePass);
+
+  useEffect(() => {
+    if (!activePhaseVisible || !activeCardRef.current || !window.matchMedia("(max-width: 720px)").matches) return;
+    activeCardRef.current.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }, [activePhase, activePhaseVisible]);
 
   return (
     <div className="page-shell">
@@ -62,15 +68,16 @@ export function MintPage() {
       <Section title="Mint Worlds" icon={<Sparkles size={20} />}>
         <PassStrip passes={ownedPasses} loading={inventoryLoading} preview={SHOWCASE_MODE} />
         <div className="phase-card-grid">
-          {[1, 2, 3, 4].map((phase) => (
+          {VISIBLE_MINT_PHASES.map((phase) => (
             <PhaseCard
               key={phase}
               phase={phase}
+              cardRef={activePhase === phase ? activeCardRef : undefined}
               active={activePhase === phase}
               locked={activePhase !== phase}
               minted={stats?.phaseMinted[phase - 1] ?? 0n}
               price={stats?.phasePrices[phase - 1] ?? 0n}
-              eligible={(phase === 1 && Boolean(phaseOnePass)) || (phase === 4 && phaseFourPasses.length > 0)}
+              eligible={phase === 1 && Boolean(phaseOnePass)}
             />
           ))}
         </div>
@@ -83,8 +90,7 @@ export function MintPage() {
           </div>
           <p className="context-line">
             {activePhase === 1 && phaseOnePass && `Using 1 Phase 1 pass #${phaseOnePass.id}.`}
-            {activePhase === 4 && phaseFourPasses.length > 0 && `Using ${phaseFourPasses.length} reward pass${phaseFourPasses.length > 1 ? "es" : ""}.`}
-            {activePhase === 0 && "Minting is currently locked."}
+            {(activePhase === 0 || !activePhaseVisible) && "Minting is currently locked."}
           </p>
           <ActionButton full disabled={SHOWCASE_MODE || !canMint} onClick={mintWorlds}>
             {SHOWCASE_MODE ? "Mint Preview Closed" : `Mint ${quantity} World${quantity > 1 ? "s" : ""} for ${eth(activePrice * BigInt(quantity))}`}
@@ -233,6 +239,7 @@ function NftArtwork({ nft, live }: { nft: NftItem; live?: boolean }) {
 
 function PhaseCard({
   phase,
+  cardRef,
   active,
   locked,
   minted,
@@ -240,17 +247,19 @@ function PhaseCard({
   eligible,
 }: {
   phase: number;
+  cardRef?: Ref<HTMLElement>;
   active: boolean;
   locked: boolean;
   minted: bigint;
   price: bigint;
   eligible: boolean;
 }) {
-  const supply = PHASE_SUPPLIES[phase];
+  const supply = DISPLAY_PHASE_SUPPLIES[phase];
   const progress = Math.min(100, (Number(minted) / supply) * 100);
+  const tonePhase = phase === 3 ? 4 : phase;
   return (
-    <article className={`phase-card phase-tone-${phase} ${active ? "active" : ""} ${locked ? "phase-locked" : ""}`}>
-      <div className="phase-art">{phase === 4 ? <Moon size={34} /> : <Sun size={34} />}</div>
+    <article ref={cardRef} className={`phase-card phase-tone-${tonePhase} ${active ? "active" : ""} ${locked ? "phase-locked" : ""}`}>
+      <div className="phase-art">{tonePhase === 4 ? <Moon size={34} /> : <Sun size={34} />}</div>
       <span>{phaseLabels[phase]}</span>
       <h3>{phaseSubtitles[phase]}</h3>
       <div className="progress"><i style={{ width: `${progress}%` }} /></div>

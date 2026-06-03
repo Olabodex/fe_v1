@@ -103,18 +103,7 @@ button {
   --ray-opacity: 0.38;
 }
 
-.phase-3 {
-  --sky-top: #a06070;
-  --sky-mid: #e08060;
-  --sky-low: #f4c08a;
-  --text: #34241f;
-  --muted: #6f4d45;
-  --accent: #be673f;
-  --celestial-x: 66%;
-  --celestial-y: 68%;
-  --ray-opacity: 0.2;
-}
-
+.phase-3,
 .phase-4 {
   --sky-top: #1a2040;
   --sky-mid: #101828;
@@ -664,7 +653,7 @@ button {
 .phase-card-grid {
   display: grid;
   gap: 14px;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .phase-card {

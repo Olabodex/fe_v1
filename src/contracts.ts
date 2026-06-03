@@ -105,6 +105,10 @@ export const MARKETPLACE_ABI = [
   "function unpause()",
 ] as const;
 
+export const DISPLAY_MAX_SUPPLY = 1450;
+export const DISPLAY_PHASE_SUPPLIES = [0, 1000, 300, 150, 0] as const;
+export const VISIBLE_MINT_PHASES = [1, 2, 3] as const;
+
 export const PHASE_SUPPLIES = [0, 1000, 300, 500, 200] as const;
 
 export const PHASE_NAMES: Record<number, string> = {
